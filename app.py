@@ -1,10 +1,17 @@
 #pyuic5 modern.ui -o modern.py
 from sys import argv
-from PyQt5.QtWidgets import QMainWindow, QApplication, QComboBox, QTableWidgetItem, QMessageBox
-from PyQt5 import QtGui
+from PyQt5.QtWidgets import QMainWindow, QApplication, QComboBox, QTableWidgetItem, QMessageBox, QStyledItemDelegate
+from PyQt5 import QtGui, QtCore
 from modern import Ui_MainWindow
 from sqlStructure import sqliteFunctions
+import os
 
+os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+
+class AlignDelegate(QStyledItemDelegate):
+    def initStyleOption(self, option, index):
+        super(AlignDelegate, self).initStyleOption(option, index)
+        option.displayAlignment = QtCore.Qt.AlignCenter
 
 class main(QMainWindow, Ui_MainWindow, sqliteFunctions):
     def __init__(self, parent = None):
@@ -12,11 +19,13 @@ class main(QMainWindow, Ui_MainWindow, sqliteFunctions):
         super().setupUi(self)
         super()
         self.sql = sqliteFunctions()
-
+        self.teste = AlignDelegate()
+        
     # Buttons!
         self.btSign.clicked.connect(self.start)
         self.btSave.clicked.connect(self.saveInfo)
         self.btStartSearch.clicked.connect(self.showTable)
+        self.btUpdate.clicked.connect(self.updateValues)
 
     # RadioButton!
         self.rbArea.clicked.connect(self.areaSearch)
@@ -112,14 +121,18 @@ class main(QMainWindow, Ui_MainWindow, sqliteFunctions):
                 row +=1
                 index +=1
 
+                delegate = AlignDelegate(self.tableWidget)
+                self.tableWidget.setItemDelegate(delegate)
+
             if self.rbName.isChecked() == True:
                 self.getValues()
                 self.btSave.setEnabled(False)
                 self.btUpdate.setEnabled(True)
-                self.btUpdate.clicked.connect(self.updateValues)
+    
             else:
                 self.btUpdate.setEnabled(False)
                 self.btSave.setEnabled(True)
+                self.resetWindow()
             
         except TypeError:
             try:
@@ -170,15 +183,23 @@ class main(QMainWindow, Ui_MainWindow, sqliteFunctions):
         try:
             self.sql.startDb()
             self.sql.updateData(info)
-            self.popup('Information saved on the database')
+            self.popup('Information updated on the database') # POR ALGUM MOTIVO ESSA FUNÇÃO REPETE O NÚMERO DE VEZES QUE A FUNÇÃO UPDATE FOR USADA
             self.resetWindow()
         finally:
             self.sql.closeConnection()
 
     def resetWindow(self):
-        pass
-        # self.rbArea.setChecked
-        # self.rbArea.checkStateSet()
+        if self.rbArea.isChecked() == True:
+                self.inputCod.setText('')
+                self.inputName.setText('')
+                self.cbInputArea.setCurrentIndex(0)
+                self.inputCity.setText('')
+                self.inputEmail.setText('')
+                self.inputPhone1.setText('')
+                self.inputPhone2.setText('')
+                self.inputLink.setText('')
+        else:
+            pass
 
     def popup(self, texto):
         msg = QMessageBox()

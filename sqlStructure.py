@@ -33,7 +33,7 @@ class sqliteFunctions:
         return data
 
     def updateData(self, data):
-        self.startDb()
+        #self.startDb()
         update = 'UPDATE supplier SET id = ?, name = ?, area = ?, city = ?, email = ?, phone1 = ?, phone2 = ?, link = ? WHERE name = ?'
         self.cursor.execute(update, data)
         self.connector.commit()
